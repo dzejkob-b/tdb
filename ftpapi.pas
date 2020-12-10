@@ -83,6 +83,7 @@ T_term_get_status_version = function() : PAnsiChar; cdecl;
 T_term_get_status_podpis = function() : Boolean; cdecl;
 T_term_get_status_listecek = function() : Boolean; cdecl;
 T_term_is_session_state_opened = function() : Boolean; cdecl;
+T_term_is_session_state_waiting_confirm = function() : Boolean; cdecl;
 T_term_is_debug_verbose = function() : Boolean; cdecl;
 T_term_get_terminal_pos = function() : PAnsiChar; cdecl;
 T_term_get_resp_amount = function() : Double; cdecl;
@@ -111,6 +112,7 @@ T_term_passivate_no_reply = function() : Integer; cdecl;
 T_term_handshake = function() : Integer; cdecl;
 T_term_tms_call = function() : Integer; cdecl;
 T_term_close_totals = function() : Integer; cdecl;
+T_term_send_confirmation = function() : Integer; cdecl;
 
 T_ares_list_request = function(ico : PAnsiChar; obchodni_firma : PAnsiChar; nazev_obce : PAnsiChar; max_pocet : Integer) : Integer; cdecl;
 T_ares_list_response_count = function() : Integer; cdecl;
@@ -201,6 +203,7 @@ _term_get_status_version : T_term_get_status_version;
 _term_get_status_podpis : T_term_get_status_podpis;
 _term_get_status_listecek : T_term_get_status_listecek;
 _term_is_session_state_opened : T_term_is_session_state_opened;
+_term_is_session_state_waiting_confirm : T_term_is_session_state_waiting_confirm;
 _term_is_debug_verbose : T_term_is_debug_verbose;
 _term_get_terminal_pos : T_term_get_terminal_pos;
 _term_get_resp_amount : T_term_get_resp_amount;
@@ -229,6 +232,7 @@ _term_passivate_no_reply : T_term_passivate_no_reply;
 _term_handshake : T_term_handshake;
 _term_tms_call : T_term_tms_call;
 _term_close_totals : T_term_close_totals;
+_term_send_confirmation : T_term_send_confirmation;
 
 _ares_list_request : T_ares_list_request;
 _ares_list_response_count : T_ares_list_response_count;
@@ -318,6 +322,7 @@ function term_get_status_version() : AnsiString;
 function term_get_status_podpis() : Boolean;
 function term_get_status_listecek() : Boolean;
 function term_is_session_state_opened() : Boolean;
+function term_is_session_state_waiting_confirm() : Boolean;
 function term_is_debug_verbose() : Boolean;
 function term_get_terminal_pos() : AnsiString;
 function term_get_resp_amount() : Double;
@@ -346,6 +351,7 @@ function term_passivate_no_reply() : Integer;
 function term_handshake() : Integer;
 function term_tms_call() : Integer;
 function term_close_totals() : Integer;
+function term_send_confirmation() : Integer;
 
 function ares_list_request(ico : AnsiString; obchodni_firma : AnsiString; nazev_obce : AnsiString; max_pocet : Integer) : Integer;
 function ares_list_response_count() : Integer;
@@ -449,6 +455,7 @@ begin
 @_term_get_status_podpis := GetProcAddress(g_dll_handle, '_term_get_status_podpis');
 @_term_get_status_listecek := GetProcAddress(g_dll_handle, '_term_get_status_listecek');
 @_term_is_session_state_opened := GetProcAddress(g_dll_handle, '_term_is_session_state_opened');
+@_term_is_session_state_waiting_confirm := GetProcAddress(g_dll_handle, '_term_is_session_state_waiting_confirm');
 @_term_is_debug_verbose := GetProcAddress(g_dll_handle, '_term_is_debug_verbose');
 @_term_get_terminal_pos := GetProcAddress(g_dll_handle, '_term_get_terminal_pos');
 @_term_get_resp_amount := GetProcAddress(g_dll_handle, '_term_get_resp_amount');
@@ -476,6 +483,7 @@ begin
 @_term_handshake := GetProcAddress(g_dll_handle, '_term_handshake');
 @_term_tms_call := GetProcAddress(g_dll_handle, '_term_tms_call');
 @_term_close_totals := GetProcAddress(g_dll_handle, '_term_close_totals');
+@_term_send_confirmation := GetProcAddress(g_dll_handle, '_term_send_confirmation');
 @_ares_list_request := GetProcAddress(g_dll_handle, '_ares_list_request');
 @_ares_list_response_count := GetProcAddress(g_dll_handle, '_ares_list_response_count');
 @_ares_list_response := GetProcAddress(g_dll_handle, '_ares_list_response');
@@ -859,6 +867,11 @@ begin
   result := _term_is_session_state_opened();
 end;
 
+function term_is_session_state_waiting_confirm() : Boolean;
+begin
+  result := _term_is_session_state_waiting_confirm();
+end;
+
 function term_is_debug_verbose() : Boolean;
 begin
   result := _term_is_debug_verbose();
@@ -1045,6 +1058,11 @@ end;
 function term_close_totals() : Integer;
 begin
   result := _term_close_totals();
+end;
+
+function term_send_confirmation() : Integer;
+begin
+  result := _term_send_confirmation();
 end;
 
 function ares_list_request(ico : AnsiString; obchodni_firma : AnsiString; nazev_obce : AnsiString; max_pocet : Integer) : Integer;

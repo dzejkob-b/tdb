@@ -53,6 +53,7 @@ function aplikuj_predpis(predpis : API_TBL; vstup : AnsiString) : API_TBLRES;
 function sestav_dle_predpisu(predpis : API_TBL; vstup : API_TBLRES) : String;
 
 function seznam_databazi(var data : API_SA) : Integer;
+function nastav_heslo(nazev_databaze : AnsiString; heslo : AnsiString) : Integer;
 function vytvorena_databaze(nazev_databaze : AnsiString) : Boolean;
 function vyber_databazi(nazev_databaze : AnsiString; pobocka : AnsiString) : Integer;
 function vytvor_databazi(nazev_databaze : AnsiString) : Integer;
@@ -651,6 +652,11 @@ begin
       data[loop + 1] := database_get_list_name(g_layer_index, loop);
     end;
   end;
+end;
+
+function nastav_heslo(nazev_databaze : AnsiString; heslo : AnsiString) : Integer;
+begin
+  result := layer_set_password(g_layer_index, nazev_databaze, heslo);
 end;
 
 function vytvorena_databaze(nazev_databaze : AnsiString) : Boolean;

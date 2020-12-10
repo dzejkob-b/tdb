@@ -112,6 +112,12 @@ begin
 
   if (tmp = 0) then
   begin
+    if (parametr = 'overeni') or (parametr = 'prvni_zaslani') then
+    begin
+      if (hodnota = 'true') or (hodnota = 'True') or (hodnota = 'TRUE') then hodnota := '1'
+      else if (hodnota = 'false') or (hodnota = 'False') or (hodnota = 'FALSE') then hodnota := '0';
+    end;
+
     result := eet_request_set_any(g_eet_index, parametr, hodnota);
   end
   else

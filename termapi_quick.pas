@@ -17,6 +17,7 @@ function terminal_zrus_akci() : Integer;
 function terminal_handshake() : String;
 function terminal_uzaverka() : Integer;
 function terminal_tms_call() : Integer;
+function terminal_hotovo() : Integer;
 function terminal_pripojen_k_pc() : Boolean;
 function terminal_bylo_autorizovano() : Boolean;
 function terminal_vytisknout_uctenku() : Boolean;
@@ -31,6 +32,13 @@ function terminal_chyba_text() : String;
 var
   last_result : Integer;
 
+  bef_typ_terminalu : String = '';
+  bef_ip_terminalu : String = '';
+  bef_port_terminalu : String = '';
+  bef_pos_id_terminalu : String = '';
+  bef_port_stanice : String = '';
+  bef_log_adresar : String = '';
+
 implementation
 
 function terminal_nastav(typ_terminalu : String; ip_terminalu : String; port_terminalu : String; pos_id_terminalu : String; port_stanice : String; log_adresar : String) : Integer;
@@ -39,14 +47,49 @@ var
 
 begin
   term_init();
-  tm_result := term_set_log_path(log_adresar);
 
-  if (tm_result = 0) then
+  (*
+  if (
+    (bef_typ_terminalu = typ_terminalu) and
+    (bef_ip_terminalu = ip_terminalu) and
+    (bef_port_terminalu = port_terminalu) and
+    (bef_pos_id_terminalu = pos_id_terminalu) and
+    (bef_port_stanice = port_stanice) and
+    (bef_log_adresar = log_adresar)
+  ) then
   begin
-    tm_result := term_setup(typ_terminalu, ip_terminalu, port_terminalu, pos_id_terminalu, StrToInt(port_stanice));
-  end;
+    result := 0;
+  end
+  else
+  begin
+    while (term_is_session_state_opened() = false) and (term_is_session_state_waiting_confirm() = false) do
+    begin
+      sleep(200);
+    end;
+  *)
+    term_stop();
 
-  result := tm_result;
+    tm_result := term_set_log_path(log_adresar);
+
+    if (tm_result = 0) then
+    begin
+      tm_result := term_setup(typ_terminalu, ip_terminalu, port_terminalu, pos_id_terminalu, StrToInt(port_stanice));
+    end;
+
+    if (tm_result = 0) then
+    begin
+      bef_typ_terminalu := typ_terminalu;
+      bef_ip_terminalu := ip_terminalu;
+      bef_port_terminalu := port_terminalu;
+      bef_pos_id_terminalu := pos_id_terminalu;
+      bef_port_stanice := port_stanice;
+      bef_log_adresar := log_adresar;
+    end;
+
+    result := tm_result;
+  (*
+  end;
+  *)
 end;
 
 function terminal_platba(castka : String; symbol : String; mena : String) : Integer;
@@ -66,12 +109,13 @@ begin
   
   if (last_result >= 0) then
   begin
-    while (term_is_session_state_opened() = false) do
+    while (term_is_session_state_opened() = false) and (term_is_session_state_waiting_confirm() = false) do
     begin
       sleep(200);
     end;
 
-    if (term_get_resp_err_approved()) then last_result := 0
+    if (term_is_session_state_waiting_confirm()) then last_result := 0
+    else if (term_get_resp_err_approved()) then last_result := 0
     else last_result := -8011;
   end;
 
@@ -95,12 +139,13 @@ begin
 
   if (last_result >= 0) then
   begin
-    while (term_is_session_state_opened() = false) do
+    while (term_is_session_state_opened() = false) and (term_is_session_state_waiting_confirm() = false) do
     begin
       sleep(200);
     end;
 
-    if (term_get_resp_err_approved()) then last_result := 0
+    if (term_is_session_state_waiting_confirm()) then last_result := 0
+    else if (term_get_resp_err_approved()) then last_result := 0
     else last_result := -8011;
   end;
 
@@ -116,12 +161,13 @@ begin
 
   if (last_result >= 0) then
   begin
-    while (term_is_session_state_opened() = false) do
+    while (term_is_session_state_opened() = false) and (term_is_session_state_waiting_confirm() = false) do
     begin
       sleep(200);
     end;
 
-    if (term_get_resp_err_approved()) then last_result := 0
+    if (term_is_session_state_waiting_confirm()) then last_result := 0
+    else if (term_get_resp_err_approved()) then last_result := 0
     else last_result := -8011;
   end;
 
@@ -228,6 +274,12 @@ begin
     else last_result := -8011;
   end;
 
+  result := last_result;
+end;
+
+function terminal_hotovo() : Integer;
+begin
+  last_result := term_send_confirmation();
   result := last_result;
 end;
 
@@ -357,7 +409,7 @@ function terminal_chyba_kod() : String;
 var
   str : String;
 begin
-  if (last_result >= 0) then
+  if (last_result <> 0) then
   begin
     str := 'E';
     str := str + IntToStr(last_result);

@@ -3,7 +3,7 @@ unit ftpapi_quick;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, ImgList, DelphiZXingQRCode;
+  Windows, SysUtils, Classes, Graphics, ImgList, DelphiZXingQRCode, barcodext, clipbrd;
 
 
 type API_FTP_SA = array of AnsiString;
@@ -53,8 +53,13 @@ function WEB_stahnout_chyba() : AnsiString;
 function WEB_stahnout_obsah() : AnsiString;
 function WEB_stahnout_hlavicky() : AnsiString;
 
-function QR_vytvor(text : AnsiString; mezera : Integer; width : Integer; height : integer) : TBitmap;
-function QR_vytvor_uloz(text : AnsiString; mezera : Integer; width : Integer; height : integer; soubor : AnsiString) : Integer;
+function QR_vytvor(text : AnsiString; mezera : Integer; width : Integer; height : Integer) : TBitmap;
+function QR_vytvor_uloz(text : AnsiString; mezera : Integer; width : Integer; height : Integer; soubor : AnsiString) : Integer;
+
+function EAN_kontrola_kodu(kod : AnsiString) : Boolean;
+function EAN_vytvor(kod : AnsiString; width : Integer; height : Integer = 0; uhel : Integer = 0; velText : Integer = 12) : TBitmap;
+function EAN_vytvor_schranka(kod : AnsiString; width : Integer; height : Integer = 0; uhel : Integer = 0; velText : Integer = 12) : TBitmap;
+function EAN_vytvor_uloz(soubor : AnsiString; kod : AnsiString; width : Integer; height : Integer = 0; uhel : Integer = 0; velText : Integer = 12) : Integer;
 
 function BANKA_vytvor_IBAN(stat : AnsiString; pred : AnsiString; ucet : AnsiString; banka : AnsiString) : AnsiString;
 
@@ -571,6 +576,7 @@ var
 begin
   bmp := QR_vytvor(text, mezera, width, height);
   bmp.SaveToFile(soubor);
+  bmp.Free;
 
   QR_vytvor_uloz := 0;
 end;
@@ -626,6 +632,73 @@ begin
    end;
 
    result := iban;
+end;
+
+function EAN_kontrola_kodu(kod : AnsiString) : Boolean;
+begin
+  EAN_kontrola_kodu := testEanValid(kod);
+end;
+
+function EAN_vytvor(kod : AnsiString; width : Integer; height : Integer; uhel : Integer; velText : Integer) : TBitmap;
+var
+  bmp: TBitmap;
+  bmpBuff: TBitmap;
+  useHeight : Integer;
+  koef : Double;
+
+begin
+  bmp := barcode(kod, clBlack, velText, uhel, clWhite, false, false);
+
+  if (width = 0) then
+  begin
+    bmpBuff := bmp;
+  end
+  else
+  begin
+    if (height > 0) then
+    begin
+      useHeight := height;
+    end
+    else
+    begin
+      useHeight := Round(Round(width) / (Round(bmp.width) / Round(bmp.height)));
+    end;
+
+    // !! ShowMessage(IntToStr(bmp.width) + ', ' + IntToStr(bmp.height));
+
+    bmpBuff := TBitmap.Create;
+    bmpBuff.width := width;
+    bmpBuff.height := useHeight;
+    bmpBuff.Canvas.StretchDraw(Rect(0, 0, width, useHeight), bmp);
+
+    bmp.Free;
+  end;
+
+  EAN_vytvor := bmpBuff;
+end;
+
+function EAN_vytvor_schranka(kod : AnsiString; width : Integer; height : Integer; uhel : Integer; velText : Integer) : TBitmap;
+var
+  bmpBuff: TBitmap;
+
+begin
+  bmpBuff := EAN_vytvor(kod, width, height, uhel, velText);
+
+  clipboard.assign(bmpBuff);
+
+  EAN_vytvor_schranka := bmpBuff;
+end;
+
+function EAN_vytvor_uloz(soubor : AnsiString; kod : AnsiString; width : Integer; height : Integer; uhel : Integer; velText : Integer) : Integer;
+var
+  bmp: TBitmap;
+
+begin
+  bmp := EAN_vytvor(kod, width, height, uhel, velText);
+  bmp.SaveToFile(soubor);
+  bmp.Free;
+
+  EAN_vytvor_uloz := 0;
 end;
 
 function BANKA_vytvor_IBAN(stat : AnsiString; pred : AnsiString; ucet : AnsiString; banka : AnsiString) : AnsiString;
